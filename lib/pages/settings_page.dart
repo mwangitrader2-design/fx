@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'profile_page.dart';
+import 'broker_connection_page.dart';
+import 'subscription_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -76,38 +79,38 @@ class _SettingsPageState extends State<SettingsPage> {
               _buildListTile(
                 'Profile',
                 Icons.person_outline,
-                () {},
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfilePage(),
+                    ),
+                  );
+                },
               ),
               _buildListTile(
                 'Broker Connection',
                 Icons.link,
-                () {},
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const BrokerConnectionPage(),
+                    ),
+                  );
+                },
               ),
               _buildListTile(
                 'Subscription',
                 Icons.star_outline,
-                () {},
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _buildSection(
-            'Support',
-            [
-              _buildListTile(
-                'Help Center',
-                Icons.help_outline,
-                () {},
-              ),
-              _buildListTile(
-                'Contact Support',
-                Icons.contact_support_outlined,
-                () {},
-              ),
-              _buildListTile(
-                'About',
-                Icons.info_outline,
-                () {},
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SubscriptionPage(),
+                    ),
+                  );
+                },
               ),
             ],
           ),
