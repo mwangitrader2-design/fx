@@ -104,7 +104,7 @@ class DashboardPage extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
@@ -181,11 +181,13 @@ class DashboardPage extends StatelessWidget {
                   ),
                 ),
                 DropdownButton<String>(
-                  value: '7D',
+                  value: '1W',
                   items: const [
                     DropdownMenuItem(value: '24H', child: Text('24H')),
-                    DropdownMenuItem(value: '7D', child: Text('7D')),
-                    DropdownMenuItem(value: '30D', child: Text('30D')),
+                    DropdownMenuItem(value: '1W', child: Text('1W')),
+                    DropdownMenuItem(value: '1M', child: Text('1M')),
+                    DropdownMenuItem(value: '3M', child: Text('3M')),
+                    DropdownMenuItem(value: '6M', child: Text('6M')),
                     DropdownMenuItem(value: '1Y', child: Text('1Y')),
                   ],
                   onChanged: (value) {},

@@ -8,7 +8,8 @@ class TradesPage extends StatefulWidget {
   State<TradesPage> createState() => _TradesPageState();
 }
 
-class _TradesPageState extends State<TradesPage> with SingleTickerProviderStateMixin {
+class _TradesPageState extends State<TradesPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -99,14 +100,14 @@ class _TradesPageState extends State<TradesPage> with SingleTickerProviderStateM
           duration: const Duration(hours: 8),
         ),
         _buildHistoryTradeCard(
-          symbol: 'AUDUSD',
-          type: 'SELL',
-          entry: 0.65720,
-          exit: 0.65580,
-          profit: 70.00,
-          profitPercent: 2.13,
-          closedAt: DateTime.now().subtract(const Duration(days: 2)),
-          duration: const Duration(hours: 3)),
+            symbol: 'AUDUSD',
+            type: 'SELL',
+            entry: 0.65720,
+            exit: 0.65580,
+            profit: 70.00,
+            profitPercent: 2.13,
+            closedAt: DateTime.now().subtract(const Duration(days: 2)),
+            duration: const Duration(hours: 3)),
       ],
     );
   }
@@ -145,7 +146,7 @@ class _TradesPageState extends State<TradesPage> with SingleTickerProviderStateM
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: signalColor.withOpacity(0.2),
+                        color: signalColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -173,14 +174,17 @@ class _TradesPageState extends State<TradesPage> with SingleTickerProviderStateM
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: (isProfit ? AppTheme.successColor : AppTheme.errorColor)
-                        .withOpacity(0.2),
+                    color:
+                        (isProfit ? AppTheme.successColor : AppTheme.errorColor)
+                            .withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     '${isProfit ? '+' : ''}\$${profit.toStringAsFixed(2)}',
                     style: TextStyle(
-                      color: isProfit ? AppTheme.successColor : AppTheme.errorColor,
+                      color: isProfit
+                          ? AppTheme.successColor
+                          : AppTheme.errorColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -205,16 +209,19 @@ class _TradesPageState extends State<TradesPage> with SingleTickerProviderStateM
             Row(
               children: [
                 Expanded(
-                  child: _buildTradeInfo('Stop Loss', stopLoss.toStringAsFixed(5)),
+                  child:
+                      _buildTradeInfo('Stop Loss', stopLoss.toStringAsFixed(5)),
                 ),
                 Expanded(
-                  child: _buildTradeInfo('Take Profit', takeProfit.toStringAsFixed(5)),
+                  child: _buildTradeInfo(
+                      'Take Profit', takeProfit.toStringAsFixed(5)),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             LinearProgressIndicator(
-              value: _calculateProgress(entry, current, stopLoss, takeProfit, isBuy),
+              value: _calculateProgress(
+                  entry, current, stopLoss, takeProfit, isBuy),
               backgroundColor: Colors.grey[800],
               valueColor: AlwaysStoppedAnimation<Color>(
                 isProfit ? AppTheme.successColor : AppTheme.errorColor,
@@ -282,7 +289,7 @@ class _TradesPageState extends State<TradesPage> with SingleTickerProviderStateM
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: signalColor.withOpacity(0.2),
+                        color: signalColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -310,7 +317,9 @@ class _TradesPageState extends State<TradesPage> with SingleTickerProviderStateM
                     Text(
                       '${isProfit ? '+' : ''}\$${profit.toStringAsFixed(2)}',
                       style: TextStyle(
-                        color: isProfit ? AppTheme.successColor : AppTheme.errorColor,
+                        color: isProfit
+                            ? AppTheme.successColor
+                            : AppTheme.errorColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -318,7 +327,9 @@ class _TradesPageState extends State<TradesPage> with SingleTickerProviderStateM
                     Text(
                       '${isProfit ? '+' : ''}${profitPercent.toStringAsFixed(2)}%',
                       style: TextStyle(
-                        color: isProfit ? AppTheme.successColor : AppTheme.errorColor,
+                        color: isProfit
+                            ? AppTheme.successColor
+                            : AppTheme.errorColor,
                         fontSize: 12,
                       ),
                     ),
@@ -408,7 +419,7 @@ class _TradesPageState extends State<TradesPage> with SingleTickerProviderStateM
   String _formatDateTime(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
-    
+
     if (difference.inDays == 0) {
       return 'Today';
     } else if (difference.inDays == 1) {

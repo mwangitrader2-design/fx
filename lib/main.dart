@@ -35,19 +35,22 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = [
-    const DashboardPage(),
-    const MarketsPage(),
-    const SignalsPage(),
-    const TradesPage(),
-    const PortfolioPage(),
-    const SettingsPage(),
+  static const List<Widget> _pages = [
+    DashboardPage(),
+    MarketsPage(),
+    SignalsPage(),
+    TradesPage(),
+    PortfolioPage(),
+    SettingsPage(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_selectedIndex],
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
@@ -56,7 +59,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           });
         },
         backgroundColor: AppTheme.surfaceColor,
-        indicatorColor: AppTheme.primaryColor.withOpacity(0.2),
+        indicatorColor: AppTheme.primaryColor.withValues(alpha: 0.2),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),

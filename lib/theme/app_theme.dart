@@ -8,29 +8,29 @@ class AppTheme {
   static const Color backgroundColor = Color(0xFF0F0F23);
   static const Color surfaceColor = Color(0xFF1A1A2E);
   static const Color cardColor = Color(0xFF16213E);
-  
+
   // Text Colors
   static const Color textPrimaryColor = Color(0xFFFFFFFF);
   static const Color textSecondaryColor = Color(0xFFB0B3C1);
   static const Color textMutedColor = Color(0xFF6B7280);
-  
+
   // Status Colors
   static const Color successColor = Color(0xFF10B981);
   static const Color errorColor = Color(0xFFEF4444);
   static const Color warningColor = Color(0xFFF59E0B);
   static const Color infoColor = Color(0xFF3B82F6);
-  
+
   // Gradient Colors
   static const List<Color> primaryGradient = [
     Color(0xFF6C63FF),
     Color(0xFF5A52D5),
   ];
-  
+
   static const List<Color> successGradient = [
     Color(0xFF10B981),
     Color(0xFF059669),
   ];
-  
+
   static const List<Color> dangerGradient = [
     Color(0xFFEF4444),
     Color(0xFFDC2626),
@@ -44,12 +44,10 @@ class AppTheme {
         primary: primaryColor,
         secondary: secondaryColor,
         surface: surfaceColor,
-        background: backgroundColor,
         error: errorColor,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: textPrimaryColor,
-        onBackground: textPrimaryColor,
         onError: Colors.white,
       ),
       scaffoldBackgroundColor: backgroundColor,

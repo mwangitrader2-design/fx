@@ -8,7 +8,8 @@ class MarketsPage extends StatefulWidget {
   State<MarketsPage> createState() => _MarketsPageState();
 }
 
-class _MarketsPageState extends State<MarketsPage> with SingleTickerProviderStateMixin {
+class _MarketsPageState extends State<MarketsPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -74,107 +75,111 @@ class _MarketsPageState extends State<MarketsPage> with SingleTickerProviderStat
 
   Widget _buildMarketCard(Map<String, dynamic> pair) {
     final isPositive = pair['change'] >= 0;
-    
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: () {
-          // Navigate to market details
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Text(
-                    pair['symbol'].substring(0, 3),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryColor,
+
+    return RepaintBoundary(
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: InkWell(
+          onTap: () {
+            // Navigate to market details
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Text(
+                      pair['symbol'].substring(0, 3),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryColor,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        pair['symbol'],
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        pair['name'],
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[400],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      pair['symbol'],
+                      pair['price'].toStringAsFixed(5),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      pair['name'],
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[400],
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    pair['price'].toStringAsFixed(5),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isPositive
-                          ? AppTheme.successColor.withOpacity(0.2)
-                          : AppTheme.errorColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isPositive ? Icons.arrow_upward : Icons.arrow_downward,
-                          size: 12,
-                          color: isPositive
-                              ? AppTheme.successColor
-                              : AppTheme.errorColor,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${isPositive ? '+' : ''}${pair['change'].toStringAsFixed(2)}%',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                      decoration: BoxDecoration(
+                        color: isPositive
+                            ? AppTheme.successColor.withValues(alpha: 0.2)
+                            : AppTheme.errorColor.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isPositive
+                                ? Icons.arrow_upward
+                                : Icons.arrow_downward,
+                            size: 12,
                             color: isPositive
                                 ? AppTheme.successColor
                                 : AppTheme.errorColor,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          Text(
+                            '${isPositive ? '+' : ''}${pair['change'].toStringAsFixed(2)}%',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isPositive
+                                  ? AppTheme.successColor
+                                  : AppTheme.errorColor,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

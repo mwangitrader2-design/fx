@@ -15,7 +15,7 @@ class PortfolioChart extends StatelessWidget {
           horizontalInterval: 1,
           getDrawingHorizontalLine: (value) {
             return FlLine(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               strokeWidth: 1,
             );
           },
@@ -95,8 +95,8 @@ class PortfolioChart extends StatelessWidget {
               show: true,
               gradient: LinearGradient(
                 colors: [
-                  AppTheme.primaryColor.withOpacity(0.3),
-                  AppTheme.primaryColor.withOpacity(0.0),
+                  AppTheme.primaryColor.withValues(alpha: 0.3),
+                  AppTheme.primaryColor.withValues(alpha: 0.0),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,

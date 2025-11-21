@@ -99,7 +99,7 @@ class _SignalsPageState extends State<SignalsPage> {
           _filter = value;
         });
       },
-      selectedColor: AppTheme.primaryColor.withOpacity(0.3),
+      selectedColor: AppTheme.primaryColor.withValues(alpha: 0.3),
       checkmarkColor: AppTheme.primaryColor,
     );
   }
@@ -136,7 +136,7 @@ class _SignalsPageState extends State<SignalsPage> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: signalColor.withOpacity(0.2),
+                        color: signalColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -164,8 +164,8 @@ class _SignalsPageState extends State<SignalsPage> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: AppTheme.successColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(6),
+                      color: AppTheme.successColor.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
@@ -192,9 +192,10 @@ class _SignalsPageState extends State<SignalsPage> {
             const SizedBox(height: 12),
             Row(
               children: [
-                _buildInfoChip('$strength', Icons.bolt, AppTheme.warningColor),
+                _buildInfoChip(strength, Icons.bolt, AppTheme.warningColor),
                 const SizedBox(width: 8),
-                _buildInfoChip('$timeframe', Icons.access_time, AppTheme.infoColor),
+                _buildInfoChip(
+                    timeframe, Icons.access_time, AppTheme.infoColor),
                 const SizedBox(width: 8),
                 _buildInfoChip(
                   '${confidence.toStringAsFixed(1)}% Confidence',
@@ -254,9 +255,9 @@ class _SignalsPageState extends State<SignalsPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

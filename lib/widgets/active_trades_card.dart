@@ -33,51 +33,53 @@ class ActiveTradesCard extends StatelessWidget {
     final isProfit = profit >= 0;
     final signalColor = isBuy ? AppTheme.successColor : AppTheme.errorColor;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: signalColor.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            isBuy ? Icons.arrow_upward : Icons.arrow_downward,
-            color: signalColor,
-          ),
-        ),
-        title: Text(
-          symbol,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          type,
-          style: TextStyle(fontSize: 12, color: signalColor),
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              '${isProfit ? '+' : ''}\$${profit.toStringAsFixed(2)}',
-              style: TextStyle(
-                color: isProfit ? AppTheme.successColor : AppTheme.errorColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
+    return RepaintBoundary(
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 8),
+        child: ListTile(
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: signalColor.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(8),
             ),
-            Text(
-              '${isProfit ? '+' : ''}${profitPercent.toStringAsFixed(2)}%',
-              style: TextStyle(
-                color: isProfit ? AppTheme.successColor : AppTheme.errorColor,
-                fontSize: 11,
-              ),
+            child: Icon(
+              isBuy ? Icons.arrow_upward : Icons.arrow_downward,
+              color: signalColor,
             ),
-          ],
+          ),
+          title: Text(
+            symbol,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Text(
+            type,
+            style: TextStyle(fontSize: 12, color: signalColor),
+          ),
+          trailing: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${isProfit ? '+' : ''}\$${profit.toStringAsFixed(2)}',
+                style: TextStyle(
+                  color: isProfit ? AppTheme.successColor : AppTheme.errorColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              Text(
+                '${isProfit ? '+' : ''}${profitPercent.toStringAsFixed(2)}%',
+                style: TextStyle(
+                  color: isProfit ? AppTheme.successColor : AppTheme.errorColor,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+          onTap: () {},
         ),
-        onTap: () {},
       ),
     );
   }

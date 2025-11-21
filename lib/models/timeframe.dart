@@ -1,3 +1,4 @@
+// ignore: constant_identifier_names
 enum TimeframeType {
   M1, // 1 minute
   M5, // 5 minutes
