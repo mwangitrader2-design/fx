@@ -1,18 +1,13 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-
-part 'timeframe.freezed.dart';
-part 'timeframe.g.dart';
-
 enum TimeframeType {
-  M1,  // 1 minute
-  M5,  // 5 minutes
+  M1, // 1 minute
+  M5, // 5 minutes
   M15, // 15 minutes
   M30, // 30 minutes
-  H1,  // 1 hour
-  H4,  // 4 hours
-  D1,  // 1 day
-  W1,  // 1 week
-  MN1  // 1 month
+  H1, // 1 hour
+  H4, // 4 hours
+  D1, // 1 day
+  W1, // 1 week
+  MN1 // 1 month
 }
 
 extension TimeframeTypeExtension on TimeframeType {

@@ -58,11 +58,10 @@ class SignalGenerationService {
     // Calculate entry, stop loss, and take profit
     final currentPrice = primaryData.last.close;
     final atr = _technicalService.calculateATR(primaryData, 14);
-    
+
     final entry = currentPrice;
-    final stopLoss = signalType == SignalType.buy
-        ? entry - (atr * 2)
-        : entry + (atr * 2);
+    final stopLoss =
+        signalType == SignalType.buy ? entry - (atr * 2) : entry + (atr * 2);
     final takeProfit = signalType == SignalType.buy
         ? entry + (atr * 4) // 2:1 risk/reward
         : entry - (atr * 4);
@@ -146,17 +145,17 @@ class SignalGenerationService {
   ) {
     final mlConfidence = mlAnalysis['overallConfidence'] as double;
     final alignmentScore = mlAnalysis['alignmentScore'] as double;
-    
+
     // Technical analysis score (normalized)
-    final technicalScore = (technicalAnalysis.bullishScore > 
-                            technicalAnalysis.bearishScore)
-        ? technicalAnalysis.bullishScore / 100
-        : technicalAnalysis.bearishScore / 100;
+    final technicalScore =
+        (technicalAnalysis.bullishScore > technicalAnalysis.bearishScore)
+            ? technicalAnalysis.bullishScore / 100
+            : technicalAnalysis.bearishScore / 100;
 
     // Weighted average: ML (60%), Alignment (25%), Technical (15%)
-    return (mlConfidence * 0.60) + 
-           (alignmentScore * 0.25) + 
-           (technicalScore * 0.15);
+    return (mlConfidence * 0.60) +
+        (alignmentScore * 0.25) +
+        (technicalScore * 0.15);
   }
 
   /// Determine signal type
@@ -168,11 +167,10 @@ class SignalGenerationService {
     final technicalSignal = technicalAnalysis.overallSignal;
 
     // Both must agree for a strong signal
-    if (mlDirection == 'up' && 
-        technicalSignal == IndicatorSignal.bullish) {
+    if (mlDirection == 'up' && technicalSignal == IndicatorSignal.bullish) {
       return SignalType.buy;
-    } else if (mlDirection == 'down' && 
-               technicalSignal == IndicatorSignal.bearish) {
+    } else if (mlDirection == 'down' &&
+        technicalSignal == IndicatorSignal.bearish) {
       return SignalType.sell;
     }
 
@@ -237,11 +235,11 @@ class SignalGenerationService {
     final upper = indicators.bollingerUpper;
     final lower = indicators.bollingerLower;
     final middle = indicators.bollingerMiddle;
-    
+
     if (upper == null || lower == null || middle == null) {
       return 'unknown';
     }
-    
+
     // Would need current price to determine exact position
     return 'middle';
   }
@@ -252,12 +250,12 @@ class SignalGenerationService {
     TechnicalAnalysis technical,
   ) {
     final direction = mlAnalysis['dominantDirection'];
-    final confidence = (mlAnalysis['overallConfidence'] as double * 100)
-        .toStringAsFixed(1);
-    
+    final confidence =
+        ((mlAnalysis['overallConfidence'] as double) * 100).toStringAsFixed(1);
+
     return 'ML prediction: $direction with $confidence% confidence. '
-           '${technical.summary} '
-           'Multiple timeframes aligned.';
+        '${technical.summary} '
+        'Multiple timeframes aligned.';
   }
 
   /// Check if timeframes are aligned
@@ -270,11 +268,10 @@ class SignalGenerationService {
     final technicalSignal = lowerTFAnalysis.overallSignal;
 
     if (signal.type == SignalType.buy) {
-      return mlDirection == 'up' && 
-             technicalSignal == IndicatorSignal.bullish;
+      return mlDirection == 'up' && technicalSignal == IndicatorSignal.bullish;
     } else {
-      return mlDirection == 'down' && 
-             technicalSignal == IndicatorSignal.bearish;
+      return mlDirection == 'down' &&
+          technicalSignal == IndicatorSignal.bearish;
     }
   }
 
@@ -285,10 +282,10 @@ class SignalGenerationService {
     Map<String, dynamic> mlPrediction,
   ) {
     final mlConfidence = mlPrediction['confidence'] as double;
-    final technicalScore = lowerTFAnalysis.bullishScore > 
-                          lowerTFAnalysis.bearishScore
-        ? lowerTFAnalysis.bullishScore / 100
-        : lowerTFAnalysis.bearishScore / 100;
+    final technicalScore =
+        lowerTFAnalysis.bullishScore > lowerTFAnalysis.bearishScore
+            ? lowerTFAnalysis.bullishScore / 100
+            : lowerTFAnalysis.bearishScore / 100;
 
     return (mlConfidence + technicalScore) / 2;
   }

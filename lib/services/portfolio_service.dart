@@ -37,8 +37,8 @@ class PortfolioService {
 
     final updatedOpenTrades = [...portfolio.openTrades, trade];
     final exposedMargin = _calculateExposedMargin(updatedOpenTrades);
-    final equity = portfolio.currentBalance + 
-                   _calculateTotalUnrealizedPL(updatedOpenTrades);
+    final equity = portfolio.currentBalance +
+        _calculateTotalUnrealizedPL(updatedOpenTrades);
 
     return portfolio.copyWith(
       openTrades: updatedOpenTrades,
@@ -57,9 +57,8 @@ class PortfolioService {
     }
 
     // Remove from open trades
-    final updatedOpenTrades = portfolio.openTrades
-        .where((t) => t.id != trade.id)
-        .toList();
+    final updatedOpenTrades =
+        portfolio.openTrades.where((t) => t.id != trade.id).toList();
 
     // Add to closed trades
     final updatedClosedTrades = [...portfolio.closedTrades, trade];
@@ -71,20 +70,20 @@ class PortfolioService {
     final isWin = trade.result == TradeResult.profit;
     final isLoss = trade.result == TradeResult.loss;
 
-    final newTotalProfit = portfolio.totalProfit + 
-                          (isWin ? trade.profitLoss! : 0);
-    final newTotalLoss = portfolio.totalLoss + 
-                        (isLoss ? trade.profitLoss!.abs() : 0);
+    final newTotalProfit =
+        portfolio.totalProfit + (isWin ? trade.profitLoss! : 0);
+    final newTotalLoss =
+        portfolio.totalLoss + (isLoss ? trade.profitLoss!.abs() : 0);
     final newNetProfit = newTotalProfit - newTotalLoss;
     final newWinningTrades = portfolio.winningTrades + (isWin ? 1 : 0);
     final newLosingTrades = portfolio.losingTrades + (isLoss ? 1 : 0);
     final newTotalTrades = portfolio.totalTrades + 1;
-    final newWinRate = newTotalTrades > 0 
-        ? (newWinningTrades / newTotalTrades) * 100 
-        : 0;
+    final newWinRate =
+        newTotalTrades > 0 ? (newWinningTrades / newTotalTrades) * 100 : 0;
 
-    final profitPercentage = 
-        ((newBalance - portfolio.initialBalance) / portfolio.initialBalance) * 100;
+    final profitPercentage =
+        ((newBalance - portfolio.initialBalance) / portfolio.initialBalance) *
+            100;
 
     final exposedMargin = _calculateExposedMargin(updatedOpenTrades);
     final unrealizedPL = _calculateTotalUnrealizedPL(updatedOpenTrades);
@@ -99,7 +98,7 @@ class PortfolioService {
       totalTrades: newTotalTrades,
       winningTrades: newWinningTrades,
       losingTrades: newLosingTrades,
-      winRate: newWinRate,
+      winRate: newWinRate.toDouble(),
       openTrades: updatedOpenTrades,
       closedTrades: updatedClosedTrades,
       equity: equity,
@@ -170,26 +169,29 @@ class PortfolioService {
         .toList();
 
     final averageWin = winningTrades.isNotEmpty
-        ? winningTrades.map((t) => t.profitLoss!).reduce((a, b) => a + b) / 
-          winningTrades.length
+        ? winningTrades.map((t) => t.profitLoss!).reduce((a, b) => a + b) /
+            winningTrades.length
         : 0.0;
 
     final averageLoss = losingTrades.isNotEmpty
-        ? losingTrades.map((t) => t.profitLoss!.abs()).reduce((a, b) => a + b) / 
-          losingTrades.length
+        ? losingTrades.map((t) => t.profitLoss!.abs()).reduce((a, b) => a + b) /
+            losingTrades.length
         : 0.0;
 
     final largestWin = winningTrades.isNotEmpty
-        ? winningTrades.map((t) => t.profitLoss!).reduce((a, b) => a > b ? a : b)
+        ? winningTrades
+            .map((t) => t.profitLoss!)
+            .reduce((a, b) => a > b ? a : b)
         : 0.0;
 
     final largestLoss = losingTrades.isNotEmpty
-        ? losingTrades.map((t) => t.profitLoss!.abs()).reduce((a, b) => a > b ? a : b)
+        ? losingTrades
+            .map((t) => t.profitLoss!.abs())
+            .reduce((a, b) => a > b ? a : b)
         : 0.0;
 
-    final profitFactor = averageLoss > 0 
-        ? portfolio.totalProfit / portfolio.totalLoss 
-        : 0.0;
+    final profitFactor =
+        averageLoss > 0 ? portfolio.totalProfit / portfolio.totalLoss : 0.0;
 
     final expectancy = portfolio.totalTrades > 0
         ? portfolio.netProfit / portfolio.totalTrades
@@ -199,12 +201,12 @@ class PortfolioService {
         .where((t) => t.closedAt != null)
         .map((t) => t.closedAt!.difference(t.openedAt))
         .toList();
-    
+
     final averageDuration = durations.isNotEmpty
         ? Duration(
             milliseconds: durations
-                .map((d) => d.inMilliseconds)
-                .reduce((a, b) => a + b) ~/
+                    .map((d) => d.inMilliseconds)
+                    .reduce((a, b) => a + b) ~/
                 durations.length,
           )
         : Duration.zero;
@@ -213,7 +215,7 @@ class PortfolioService {
       portfolio.closedTrades,
       TradeResult.profit,
     );
-    
+
     final consecutiveLosses = _calculateMaxConsecutive(
       portfolio.closedTrades,
       TradeResult.loss,
@@ -224,7 +226,7 @@ class PortfolioService {
       sortinoRatio: _calculateSortinoRatio(portfolio),
       maxDrawdown: _calculateMaxDrawdown(portfolio),
       averageDrawdown: 0, // Would need historical data
-      recoveryFactor: 0,  // Would need historical data
+      recoveryFactor: 0, // Would need historical data
       profitFactor: profitFactor,
       expectancy: expectancy,
       averageWin: averageWin,
@@ -242,7 +244,8 @@ class PortfolioService {
   double _calculateExposedMargin(List<Trade> openTrades) {
     return openTrades.fold<double>(
       0,
-      (sum, trade) => sum + (trade.lotSize * trade.entryPrice * 0.01), // 1% margin
+      (sum, trade) =>
+          sum + (trade.lotSize * trade.entryPrice * 0.01), // 1% margin
     );
   }
 
@@ -257,17 +260,16 @@ class PortfolioService {
     final priceDiff = trade.type == SignalType.buy
         ? currentPrice - trade.entryPrice
         : trade.entryPrice - currentPrice;
-    
+
     return priceDiff * trade.lotSize;
   }
 
   double _calculateSharpeRatio(Portfolio portfolio) {
     if (portfolio.closedTrades.isEmpty) return 0;
-    
-    final returns = portfolio.closedTrades
-        .map((t) => t.profitLossPercentage ?? 0)
-        .toList();
-    
+
+    final returns =
+        portfolio.closedTrades.map((t) => t.profitLossPercentage ?? 0).toList();
+
     final avgReturn = returns.reduce((a, b) => a + b) / returns.length;
     // Simplified calculation - would need risk-free rate and proper std dev
     return avgReturn / 10; // Placeholder
@@ -280,11 +282,11 @@ class PortfolioService {
 
   double _calculateMaxDrawdown(Portfolio portfolio) {
     if (portfolio.closedTrades.isEmpty) return 0;
-    
+
     double peak = portfolio.initialBalance;
     double maxDrawdown = 0;
     double current = portfolio.initialBalance;
-    
+
     for (final trade in portfolio.closedTrades) {
       current += trade.profitLoss ?? 0;
       if (current > peak) {
@@ -295,14 +297,14 @@ class PortfolioService {
         maxDrawdown = drawdown;
       }
     }
-    
+
     return maxDrawdown;
   }
 
   int _calculateMaxConsecutive(List<Trade> trades, TradeResult result) {
     int maxConsecutive = 0;
     int currentConsecutive = 0;
-    
+
     for (final trade in trades) {
       if (trade.result == result) {
         currentConsecutive++;
@@ -313,7 +315,7 @@ class PortfolioService {
         currentConsecutive = 0;
       }
     }
-    
+
     return maxConsecutive;
   }
 }

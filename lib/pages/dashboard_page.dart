@@ -4,10 +4,6 @@ import '../widgets/stat_card.dart';
 import '../widgets/portfolio_chart.dart';
 import '../widgets/active_trades_card.dart';
 import '../widgets/recent_signals_list.dart';
-import '../widgets/stat_card.dart';
-import '../widgets/recent_signals_list.dart';
-import '../widgets/portfolio_chart.dart';
-import '../widgets/active_trades_card.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -38,19 +34,19 @@ class DashboardPage extends StatelessWidget {
               // Portfolio Overview
               _buildPortfolioOverview(),
               const SizedBox(height: 24),
-              
+
               // Stats Grid
               _buildStatsGrid(),
               const SizedBox(height: 24),
-              
+
               // Portfolio Chart
               _buildPortfolioChart(),
               const SizedBox(height: 24),
-              
+
               // Active Trades
               _buildActiveTradesSection(),
               const SizedBox(height: 24),
-              
+
               // Recent Signals
               _buildRecentSignalsSection(),
               const SizedBox(height: 16),
