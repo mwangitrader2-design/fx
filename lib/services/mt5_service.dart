@@ -8,7 +8,7 @@ class MT5Service {
   // For Android emulator use: 'http://10.0.2.2:5000'
   // For physical device use: 'http://YOUR_PC_IP:5000' (e.g., 'http://192.168.1.100:5000')
   static const String _baseUrl =
-      'http://192.168.100.6:5000'; // Change this to your PC's IP
+      'http://192.168.100.4:5000'; // Your PC's IP address
   static const String _credentialsKey = 'mt5_credentials';
 
   // Store credentials locally
