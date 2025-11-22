@@ -389,7 +389,8 @@ class FirebaseService {
             takeProfit: data['takeProfit'],
             confidenceScore: data['confidenceScore'],
             indicators: List<String>.from(data['indicators'] ?? []),
-            technicalAnalysis: Map<String, dynamic>.from(data['technicalAnalysis'] ?? {}),
+            technicalAnalysis:
+                Map<String, dynamic>.from(data['technicalAnalysis'] ?? {}),
           );
         }).toList();
       });
