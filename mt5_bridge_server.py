@@ -227,6 +227,153 @@ def connection_status():
     }), 200
 
 
+@app.route('/mt5/chart_data/<symbol>', methods=['GET'])
+def get_chart_data(symbol):
+    """Get historical chart data (OHLCV) for a symbol"""
+    global mt5_connected
+    
+    try:
+        if not mt5_connected:
+            return jsonify({
+                'success': False,
+                'message': 'Not connected to MT5'
+            }), 200
+        
+        # Get query parameters
+        timeframe_str = request.args.get('timeframe', 'H1')  # Default H1
+        count = int(request.args.get('count', 500))  # Default 500 candles
+        
+        # Map timeframe string to MT5 constant
+        timeframe_map = {
+            'M1': mt5.TIMEFRAME_M1,
+            'M5': mt5.TIMEFRAME_M5,
+            'M15': mt5.TIMEFRAME_M15,
+            'M30': mt5.TIMEFRAME_M30,
+            'H1': mt5.TIMEFRAME_H1,
+            'H4': mt5.TIMEFRAME_H4,
+            'D1': mt5.TIMEFRAME_D1,
+            'W1': mt5.TIMEFRAME_W1,
+            'MN1': mt5.TIMEFRAME_MN1,
+        }
+        
+        timeframe = timeframe_map.get(timeframe_str, mt5.TIMEFRAME_H1)
+        
+        # Get rates from current time
+        rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, count)
+        
+        if rates is None or len(rates) == 0:
+            return jsonify({
+                'success': False,
+                'message': f'No data available for {symbol}'
+            }), 200
+        
+        # Convert to list of dictionaries
+        candles = []
+        for rate in rates:
+            candles.append({
+                'time': int(rate['time']),
+                'open': float(rate['open']),
+                'high': float(rate['high']),
+                'low': float(rate['low']),
+                'close': float(rate['close']),
+                'tick_volume': int(rate['tick_volume']),
+                'spread': int(rate['spread']),
+                'real_volume': int(rate['real_volume'])
+            })
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'symbol': symbol,
+                'timeframe': timeframe_str,
+                'count': len(candles),
+                'candles': candles
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }), 200
+
+
+@app.route('/mt5/chart_data_multi/<symbol>', methods=['GET'])
+def get_multi_timeframe_data(symbol):
+    """Get chart data for multiple timeframes at once"""
+    global mt5_connected
+    
+    try:
+        if not mt5_connected:
+            return jsonify({
+                'success': False,
+                'message': 'Not connected to MT5'
+            }), 200
+        
+        # Get query parameters
+        timeframes_param = request.args.get('timeframes', 'M15,H1,H4,D1')
+        timeframes = [tf.strip() for tf in timeframes_param.split(',')]
+        count = int(request.args.get('count', 500))
+        
+        # Map timeframe string to MT5 constant
+        timeframe_map = {
+            'M1': mt5.TIMEFRAME_M1,
+            'M5': mt5.TIMEFRAME_M5,
+            'M15': mt5.TIMEFRAME_M15,
+            'M30': mt5.TIMEFRAME_M30,
+            'H1': mt5.TIMEFRAME_H1,
+            'H4': mt5.TIMEFRAME_H4,
+            'D1': mt5.TIMEFRAME_D1,
+            'W1': mt5.TIMEFRAME_W1,
+            'MN1': mt5.TIMEFRAME_MN1,
+        }
+        
+        result_data = {}
+        
+        for tf_str in timeframes:
+            timeframe = timeframe_map.get(tf_str)
+            if timeframe is None:
+                continue
+                
+            rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, count)
+            
+            if rates is not None and len(rates) > 0:
+                candles = []
+                for rate in rates:
+                    candles.append({
+                        'time': int(rate['time']),
+                        'open': float(rate['open']),
+                        'high': float(rate['high']),
+                        'low': float(rate['low']),
+                        'close': float(rate['close']),
+                        'tick_volume': int(rate['tick_volume']),
+                        'spread': int(rate['spread']),
+                        'real_volume': int(rate['real_volume'])
+                    })
+                
+                result_data[tf_str] = candles
+        
+        if not result_data:
+            return jsonify({
+                'success': False,
+                'message': f'No data available for {symbol}'
+            }), 200
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'symbol': symbol,
+                'timeframes': result_data
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }), 200
+
+
 if __name__ == '__main__':
     print("Starting MT5 Bridge Server...")
     print("Make sure MetaTrader 5 is installed and running")

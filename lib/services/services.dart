@@ -8,6 +8,7 @@ export 'risk_management_service.dart';
 export 'ml_prediction_service.dart';
 export 'market_data_service.dart';
 export 'mt5_service.dart';
+export 'mt5_chart_service.dart';
 
 // Enhanced AI Services
 export 'firebase_service.dart';

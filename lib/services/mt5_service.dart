@@ -407,4 +407,74 @@ class MT5Service {
       return false;
     }
   }
+
+  // Get historical chart data for a symbol
+  Future<Map<String, dynamic>> getChartData({
+    required String symbol,
+    String timeframe = 'H1',
+    int count = 500,
+  }) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '$_baseUrl/mt5/chart_data/$symbol?timeframe=$timeframe&count=$count'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return {
+          'success': data['success'] ?? false,
+          'message': data['message'],
+          'data': data['data'],
+        };
+      } else {
+        return {
+          'success': false,
+          'message': 'Failed to get chart data: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Error getting chart data: $e',
+      };
+    }
+  }
+
+  // Get chart data for multiple timeframes at once
+  Future<Map<String, dynamic>> getMultiTimeframeData({
+    required String symbol,
+    List<String> timeframes = const ['M15', 'H1', 'H4', 'D1'],
+    int count = 500,
+  }) async {
+    try {
+      final timeframesParam = timeframes.join(',');
+      final response = await http.get(
+        Uri.parse(
+            '$_baseUrl/mt5/chart_data_multi/$symbol?timeframes=$timeframesParam&count=$count'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 20));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return {
+          'success': data['success'] ?? false,
+          'message': data['message'],
+          'data': data['data'],
+        };
+      } else {
+        return {
+          'success': false,
+          'message':
+              'Failed to get multi-timeframe data: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Error getting multi-timeframe data: $e',
+      };
+    }
+  }
 }

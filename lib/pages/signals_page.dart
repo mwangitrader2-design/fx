@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/services.dart';
+import '../models/models.dart';
 
 class SignalsPage extends StatefulWidget {
   const SignalsPage({super.key});
@@ -11,6 +13,102 @@ class SignalsPage extends StatefulWidget {
 class _SignalsPageState extends State<SignalsPage> {
   String _filter = 'all';
   final Set<String> _expandedSignals = {};
+  final AISignalGenerator _signalGenerator = AISignalGenerator();
+  final MT5Service _mt5Service = MT5Service();
+
+  List<TradingSignal> _signals = [];
+  bool _isLoading = false;
+  bool _isInitialLoad = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSignals();
+  }
+
+  Future<void> _loadSignals() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Check MT5 connection first
+      final connectionStatus = await _mt5Service.testConnection(
+        username: '506933', // Replace with actual username
+        password: 'Mare-Dewy-09', // Replace with actual password
+        server: 'EGMSecurities-Demo', // Replace with actual server
+      );
+      if (!connectionStatus['success']) {
+        throw Exception('MT5 not connected. Please login first.');
+      }
+
+      // Generate signals for major currency pairs
+      final symbols = [
+        'EURUSD',
+        'GBPUSD',
+        'USDJPY',
+        'AUDUSD',
+        'USDCAD',
+        'NZDUSD'
+      ];
+      final List<TradingSignal> generatedSignals = [];
+
+      for (final symbol in symbols) {
+        try {
+          final signal = await _signalGenerator.generateSignalFromMT5(
+            symbol: symbol,
+            primaryTimeframe: TimeframeType.H1,
+            additionalTimeframes: [
+              TimeframeType.M15,
+              TimeframeType.H1,
+              TimeframeType.H4,
+              TimeframeType.D1,
+            ],
+          );
+
+          if (signal != null) {
+            generatedSignals.add(signal);
+          }
+        } catch (e) {
+          print('Error generating signal for $symbol: $e');
+          // Continue with other symbols
+        }
+      }
+
+      setState(() {
+        _signals = generatedSignals;
+        _isLoading = false;
+        _isInitialLoad = false;
+        if (generatedSignals.isEmpty) {
+          _errorMessage =
+              'No high-confidence signals at the moment. Pull to refresh.';
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _isInitialLoad = false;
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
+      });
+    }
+  }
+
+  List<TradingSignal> get _filteredSignals {
+    switch (_filter) {
+      case 'confirmed':
+        return _signals.where((s) => s.isConfirmedOnLowerTimeframe).toList();
+      case 'pending':
+        return _signals.where((s) => !s.isConfirmedOnLowerTimeframe).toList();
+      case 'very_strong':
+        return _signals
+            .where((s) => s.strength == SignalStrength.veryStrong)
+            .toList();
+      default:
+        return _signals;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +117,10 @@ class _SignalsPageState extends State<SignalsPage> {
         title: const Text('Signals'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _isLoading ? null : _loadSignals,
+          ),
+          IconButton(
             icon: const Icon(Icons.filter_list),
             onPressed: _showFilterDialog,
           ),
@@ -26,49 +128,147 @@ class _SignalsPageState extends State<SignalsPage> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async {
-          await Future.delayed(const Duration(seconds: 1));
-        },
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+        onRefresh: _loadSignals,
+        child: _buildBody(),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isInitialLoad && _isLoading) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildFilterChips(),
-            const SizedBox(height: 16),
-            _buildSignalCard(
-              symbol: 'EURUSD',
-              type: 'BUY',
-              strength: 'Very Strong',
-              confidence: 99.2,
-              entry: 1.09450,
-              stopLoss: 1.09250,
-              takeProfit: 1.09850,
-              timeframe: 'H4',
-              confirmedOnLowerTF: true,
-            ),
-            _buildSignalCard(
-              symbol: 'GBPUSD',
-              type: 'SELL',
-              strength: 'Strong',
-              confidence: 97.5,
-              entry: 1.26520,
-              stopLoss: 1.26720,
-              takeProfit: 1.26120,
-              timeframe: 'H1',
-              confirmedOnLowerTF: true,
-            ),
-            _buildSignalCard(
-              symbol: 'USDJPY',
-              type: 'BUY',
-              strength: 'Strong',
-              confidence: 96.8,
-              entry: 148.520,
-              stopLoss: 148.320,
-              takeProfit: 148.920,
-              timeframe: 'H4',
-              confirmedOnLowerTF: false,
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Analyzing market data from MT5...'),
+            SizedBox(height: 8),
+            Text(
+              'This may take a moment',
+              style: TextStyle(
+                color: AppTheme.textSecondaryColor,
+                fontSize: 12,
+              ),
             ),
           ],
         ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: AppTheme.errorColor.withValues(alpha: 0.7),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _loadSignals,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final filteredSignals = _filteredSignals;
+
+    if (filteredSignals.isEmpty && !_isLoading) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.trending_flat,
+                size: 48,
+                color: AppTheme.textSecondaryColor.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'No signals available',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'No high-confidence signals match your filter criteria.\nPull to refresh or adjust filters.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppTheme.textSecondaryColor,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _loadSignals,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Refresh Signals'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        if (_isLoading)
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        _buildFilterChips(),
+        const SizedBox(height: 8),
+        _buildSignalsInfo(),
+        const SizedBox(height: 16),
+        ...filteredSignals.map((signal) => _buildSignalCardFromModel(signal)),
+      ],
+    );
+  }
+
+  Widget _buildSignalsInfo() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline,
+              size: 16, color: AppTheme.primaryColor),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '${_signals.length} high-confidence signal${_signals.length == 1 ? '' : 's'} (99%+ confidence)',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -102,6 +302,40 @@ class _SignalsPageState extends State<SignalsPage> {
       },
       selectedColor: AppTheme.primaryColor.withValues(alpha: 0.3),
       checkmarkColor: AppTheme.primaryColor,
+    );
+  }
+
+  Widget _buildSignalCardFromModel(TradingSignal signal) {
+    final timeframeStr =
+        signal.primaryTimeframe.toString().split('.').last.toUpperCase();
+
+    // Convert SignalStrength enum to display string
+    String strengthStr;
+    switch (signal.strength) {
+      case SignalStrength.veryStrong:
+        strengthStr = 'Very Strong';
+        break;
+      case SignalStrength.strong:
+        strengthStr = 'Strong';
+        break;
+      case SignalStrength.moderate:
+        strengthStr = 'Moderate';
+        break;
+      case SignalStrength.weak:
+        strengthStr = 'Weak';
+        break;
+    }
+
+    return _buildSignalCard(
+      symbol: signal.symbol,
+      type: signal.type == SignalType.buy ? 'BUY' : 'SELL',
+      strength: strengthStr,
+      confidence: signal.confidenceScore * 100,
+      entry: signal.entryPrice,
+      stopLoss: signal.stopLoss,
+      takeProfit: signal.takeProfit,
+      timeframe: timeframeStr,
+      confirmedOnLowerTF: signal.isConfirmedOnLowerTimeframe,
     );
   }
 

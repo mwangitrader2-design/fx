@@ -5,6 +5,7 @@ import 'ai_market_analyzer.dart';
 import 'technical_indicator_service.dart';
 import 'ml_prediction_service.dart';
 import 'firebase_service.dart';
+import 'mt5_chart_service.dart';
 
 /// Advanced AI-powered signal generation service targeting 99% accuracy
 class AISignalGenerator {
@@ -12,6 +13,7 @@ class AISignalGenerator {
   final TechnicalIndicatorService _technicalService;
   final MLPredictionService _mlService;
   final FirebaseService _firebaseService;
+  final MT5ChartService _mt5ChartService;
   final _uuid = const Uuid();
 
   // Minimum confidence threshold for signal generation (99%)
@@ -22,10 +24,69 @@ class AISignalGenerator {
     TechnicalIndicatorService? technicalService,
     MLPredictionService? mlService,
     FirebaseService? firebaseService,
+    MT5ChartService? mt5ChartService,
   })  : _marketAnalyzer = marketAnalyzer ?? AIMarketAnalyzer(),
         _technicalService = technicalService ?? TechnicalIndicatorService(),
         _mlService = mlService ?? MLPredictionService(),
-        _firebaseService = firebaseService ?? FirebaseService();
+        _firebaseService = firebaseService ?? FirebaseService(),
+        _mt5ChartService = mt5ChartService ?? MT5ChartService();
+
+  /// Generate signal using live MT5 chart data
+  Future<TradingSignal?> generateSignalFromMT5({
+    required String symbol,
+    TimeframeType primaryTimeframe = TimeframeType.H1,
+    List<TimeframeType>? additionalTimeframes,
+  }) async {
+    try {
+      // Define timeframes to analyze (primary + higher/lower for confirmation)
+      final timeframesToFetch = additionalTimeframes ??
+          [
+            TimeframeType.M15,
+            TimeframeType.H1,
+            TimeframeType.H4,
+            TimeframeType.D1,
+          ];
+
+      // Convert to MT5 timeframe strings
+      final timeframeStrings = timeframesToFetch
+          .map((tf) => _mt5ChartService.timeframeTypeToString(tf))
+          .toList();
+
+      // Fetch multi-timeframe data from MT5
+      await _firebaseService.logEvent('fetching_mt5_chart_data', {
+        'symbol': symbol,
+        'timeframes': timeframeStrings.join(','),
+      });
+
+      final timeframeData = await _mt5ChartService.getMultiTimeframeMarketData(
+        symbol: symbol,
+        timeframes: timeframeStrings,
+        count: 500,
+      );
+
+      if (timeframeData.isEmpty) {
+        await _firebaseService.logEvent('mt5_data_fetch_failed', {
+          'symbol': symbol,
+          'reason': 'No data returned',
+        });
+        return null;
+      }
+
+      // Generate signal using the fetched MT5 data
+      return await generateSignal(
+        symbol: symbol,
+        timeframeData: timeframeData,
+        primaryTimeframe: primaryTimeframe,
+      );
+    } catch (e, stackTrace) {
+      await _firebaseService
+          .logError('MT5 signal generation error', stackTrace, context: {
+        'symbol': symbol,
+        'error': e.toString(),
+      });
+      return null;
+    }
+  }
 
   /// Generate high-accuracy trading signal (99%+ target)
   Future<TradingSignal?> generateSignal({
