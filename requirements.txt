@@ -1,3 +1,31 @@
 MetaTrader5==5.0.45
 Flask==3.0.0
 flask-cors==4.0.0
+
+# Firebase Admin SDK
+firebase-admin==6.3.0
+
+# ML and Data Science
+numpy==1.26.3
+pandas==2.1.4
+scikit-learn==1.4.0
+tensorflow==2.15.0
+keras==2.15.0
+xgboost==2.0.3
+lightgbm==4.2.0
+
+# Technical Analysis
+ta-lib==0.4.28
+pandas-ta==0.3.14b0
+
+# Pattern Recognition
+opencv-python==4.9.0.80
+scipy==1.11.4
+
+# Time Series Analysis
+statsmodels==0.14.1
+prophet==1.1.5
+
+# Utilities
+python-dotenv==1.0.0
+schedule==1.2.0

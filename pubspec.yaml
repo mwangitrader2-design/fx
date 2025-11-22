@@ -39,6 +39,14 @@ dependencies:
   flutter_riverpod: ^2.5.1
   riverpod_annotation: ^2.3.5
   
+  # Firebase
+  firebase_core: ^3.6.0
+  firebase_database: ^11.1.4
+  firebase_auth: ^5.3.1
+  firebase_analytics: ^11.3.3
+  cloud_firestore: ^5.4.4
+  firebase_storage: ^12.3.4
+  
   # ML and Data Analysis
   tflite_flutter: ^0.10.4
   ml_algo: ^16.15.1
