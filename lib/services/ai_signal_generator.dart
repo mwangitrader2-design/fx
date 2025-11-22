@@ -17,8 +17,8 @@ class AISignalGenerator {
   final _uuid = const Uuid();
 
   // Minimum confidence threshold for signal generation (99%)
-  // Temporarily lowered for testing - change back to 0.99 for production
-  static const double MIN_CONFIDENCE_THRESHOLD = 0.85;
+  // Temporarily lowered to 70% for testing - change back to 0.99 for production
+  static const double MIN_CONFIDENCE_THRESHOLD = 0.30;
 
   AISignalGenerator({
     AIMarketAnalyzer? marketAnalyzer,
