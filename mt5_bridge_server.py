@@ -33,9 +33,13 @@ def test_connection():
 
         # Initialize MT5
         if not mt5.initialize():
+            error_code, error_msg = mt5.last_error()
+            troubleshooting = ""
+            if error_code == -6:
+                troubleshooting = "\n\n🔧 SOLUTION:\n1. Open MT5 → Tools → Options\n2. Go to 'Expert Advisors' tab\n3. Enable 'Allow algorithmic trading'\n4. Restart MT5 and try again"
             return jsonify({
                 'success': False,
-                'message': f'MT5 initialization failed: {mt5.last_error()}'
+                'message': f'MT5 initialization failed (Code: {error_code}): {error_msg}{troubleshooting}'
             }), 200
 
         # Try to login
@@ -93,9 +97,13 @@ def login():
 
         # Initialize MT5 if not already
         if not mt5.initialize():
+            error_code, error_msg = mt5.last_error()
+            troubleshooting = ""
+            if error_code == -6:
+                troubleshooting = "\n\n🔧 SOLUTION:\n1. Open MT5 → Tools → Options\n2. Go to 'Expert Advisors' tab\n3. Enable 'Allow algorithmic trading'\n4. Restart MT5 and try again"
             return jsonify({
                 'success': False,
-                'message': f'MT5 initialization failed: {mt5.last_error()}'
+                'message': f'MT5 initialization failed (Code: {error_code}): {error_msg}{troubleshooting}'
             }), 200
 
         # Login

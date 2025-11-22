@@ -480,6 +480,11 @@ class _BrokerConnectionPageState extends State<BrokerConnectionPage> {
         ),
       );
     } else {
+      final errorMessage = result['message'] ?? 'Connection test failed';
+      final isInvalidAccount =
+          errorMessage.toLowerCase().contains('invalid account') ||
+              errorMessage.toLowerCase().contains('authorization failed');
+
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -490,7 +495,32 @@ class _BrokerConnectionPageState extends State<BrokerConnectionPage> {
               Text('Test Failed'),
             ],
           ),
-          content: Text(result['message'] ?? 'Connection test failed'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(errorMessage),
+                if (isInvalidAccount) ...[
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '🔧 Possible Solutions:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '1. Verify credentials in MT5:\n   File → Login to Trade Account\n\n'
+                    '2. Check if demo account expired\n   (Demo accounts last 30-90 days)\n\n'
+                    '3. Verify server name is correct\n   (e.g., EGMSecurities-Demo)\n\n'
+                    '4. Create new demo account:\n   File → Open an Account',
+                    style: TextStyle(fontSize: 13),
+                  ),
+                ],
+              ],
+            ),
+          ),
           actions: [
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
@@ -547,6 +577,11 @@ class _BrokerConnectionPageState extends State<BrokerConnectionPage> {
         ),
       );
     } else {
+      final errorMessage = result['message'] ?? 'Login failed';
+      final isInvalidAccount =
+          errorMessage.toLowerCase().contains('invalid account') ||
+              errorMessage.toLowerCase().contains('authorization failed');
+
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -557,7 +592,32 @@ class _BrokerConnectionPageState extends State<BrokerConnectionPage> {
               Text('Login Failed'),
             ],
           ),
-          content: Text(result['message'] ?? 'Login failed'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(errorMessage),
+                if (isInvalidAccount) ...[
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '🔧 Possible Solutions:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '1. Verify credentials in MT5:\n   File → Login to Trade Account\n\n'
+                    '2. Check if demo account expired\n   (Demo accounts last 30-90 days)\n\n'
+                    '3. Verify server name is correct\n   (e.g., EGMSecurities-Demo)\n\n'
+                    '4. Create new demo account:\n   File → Open an Account',
+                    style: TextStyle(fontSize: 13),
+                  ),
+                ],
+              ],
+            ),
+          ),
           actions: [
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
