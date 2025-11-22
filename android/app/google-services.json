@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "798846355648",
+    "project_id": "kimutaifx",
+    "storage_bucket": "kimutaifx.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:798846355648:android:cba2ac7113b1d39e958525",
+        "android_client_info": {
+          "package_name": "com.kimutaifx"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6ehkN8olzRBzyTvuor-wPwJIvYqvJhpQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
