@@ -1,8 +1,42 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/mt5_service.dart';
 
-class PortfolioPage extends StatelessWidget {
+class PortfolioPage extends StatefulWidget {
   const PortfolioPage({super.key});
+
+  @override
+  State<PortfolioPage> createState() => _PortfolioPageState();
+}
+
+class _PortfolioPageState extends State<PortfolioPage> {
+  final _mt5Service = MT5Service();
+  Map<String, dynamic>? _accountInfo;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAccountInfo();
+  }
+
+  Future<void> _loadAccountInfo() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final result = await _mt5Service.getAccountInfo();
+      if (mounted && result['success'] == true) {
+        setState(() {
+          _accountInfo = result['data'];
+          _isLoading = false;
+        });
+      } else {
+        setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,16 +45,14 @@ class PortfolioPage extends StatelessWidget {
         title: const Text('Portfolio'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () {},
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadAccountInfo,
           ),
           const SizedBox(width: 8),
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async {
-          await Future.delayed(const Duration(seconds: 1));
-        },
+        onRefresh: _loadAccountInfo,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -30,7 +62,7 @@ class PortfolioPage extends StatelessWidget {
               const SizedBox(height: 24),
               _buildPerformanceStats(),
               const SizedBox(height: 24),
-              _buildTradingStats(),
+              _buildAccountDetails(),
               const SizedBox(height: 24),
               _buildRiskMetrics(),
             ],
@@ -41,39 +73,99 @@ class PortfolioPage extends StatelessWidget {
   }
 
   Widget _buildBalanceCard() {
+    final balance = _accountInfo?['balance']?.toDouble() ?? 0.0;
+    final equity = _accountInfo?['equity']?.toDouble() ?? 0.0;
+    final profit = _accountInfo?['profit']?.toDouble() ?? 0.0;
+    final currency = _accountInfo?['currency'] ?? 'USD';
+    final isConnected = _accountInfo != null;
+
+    // Calculate growth percentage
+    final growthPercent = balance > 0 ? (profit / balance) * 100 : 0.0;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: AppTheme.primaryGradientDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Total Equity',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'MT5 Account Equity',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                ),
+              ),
+              if (!isConnected)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.orange,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'Not Connected',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            '\$125,450.00',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          _isLoading
+              ? const SizedBox(
+                  height: 44,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  ),
+                )
+              : Text(
+                  isConnected
+                      ? '\$$currency ${equity.toStringAsFixed(2)}'
+                      : '\$0.00',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
           const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
-                child: _buildBalanceItem('Initial', '\$100,000'),
+                child: _buildBalanceItem(
+                  'Balance',
+                  isConnected
+                      ? '\$$currency ${balance.toStringAsFixed(2)}'
+                      : '\$0.00',
+                ),
               ),
               Expanded(
-                child: _buildBalanceItem('Profit', '+\$25,450'),
+                child: _buildBalanceItem(
+                  'Profit/Loss',
+                  isConnected
+                      ? '${profit >= 0 ? '+' : ''}\$$currency ${profit.toStringAsFixed(2)}'
+                      : '\$0.00',
+                ),
               ),
               Expanded(
-                child: _buildBalanceItem('Growth', '+25.45%'),
+                child: _buildBalanceItem(
+                  'Growth',
+                  isConnected
+                      ? '${growthPercent >= 0 ? '+' : ''}${growthPercent.toStringAsFixed(2)}%'
+                      : '0.00%',
+                ),
               ),
             ],
           ),
@@ -107,6 +199,12 @@ class PortfolioPage extends StatelessWidget {
   }
 
   Widget _buildPerformanceStats() {
+    final balance = _accountInfo?['balance']?.toDouble() ?? 0.0;
+    final equity = _accountInfo?['equity']?.toDouble() ?? 0.0;
+    final profit = _accountInfo?['profit']?.toDouble() ?? 0.0;
+    final marginFree = _accountInfo?['margin_free']?.toDouble() ?? 0.0;
+    final isConnected = _accountInfo != null;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -114,27 +212,53 @@ class PortfolioPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Performance',
+              'Account Performance',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 16),
-            _buildStatRow('Total Profit', '\$32,450', AppTheme.successColor),
+            _buildStatRow(
+              'Balance',
+              isConnected ? '\$${balance.toStringAsFixed(2)}' : 'N/A',
+              AppTheme.infoColor,
+            ),
             const SizedBox(height: 12),
-            _buildStatRow('Total Loss', '\$7,000', AppTheme.errorColor),
+            _buildStatRow(
+              'Equity',
+              isConnected ? '\$${equity.toStringAsFixed(2)}' : 'N/A',
+              AppTheme.successColor,
+            ),
             const SizedBox(height: 12),
-            _buildStatRow('Net Profit', '\$25,450', AppTheme.successColor),
+            _buildStatRow(
+              'Floating P/L',
+              isConnected
+                  ? '${profit >= 0 ? '+' : ''}\$${profit.toStringAsFixed(2)}'
+                  : 'N/A',
+              profit >= 0 ? AppTheme.successColor : AppTheme.errorColor,
+            ),
             const SizedBox(height: 12),
-            _buildStatRow('Profit Factor', '4.64', AppTheme.infoColor),
+            _buildStatRow(
+              'Free Margin',
+              isConnected ? '\$${marginFree.toStringAsFixed(2)}' : 'N/A',
+              AppTheme.successColor,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTradingStats() {
+  Widget _buildAccountDetails() {
+    final login = _accountInfo?['login']?.toString() ?? 'N/A';
+    final server = _accountInfo?['server']?.toString() ?? 'N/A';
+    final name = _accountInfo?['name']?.toString() ?? 'N/A';
+    final company = _accountInfo?['company']?.toString() ?? 'N/A';
+    final leverage = _accountInfo?['leverage']?.toString() ?? 'N/A';
+    final currency = _accountInfo?['currency']?.toString() ?? 'N/A';
+    final isConnected = _accountInfo != null;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -142,7 +266,7 @@ class PortfolioPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Trading Statistics',
+              'Account Details',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -152,11 +276,13 @@ class PortfolioPage extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: _buildStatBox('Total Trades', '145'),
+                  child: _buildStatBox(
+                      'Account', isConnected ? login : 'Not Connected'),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildStatBox('Win Rate', '87.5%'),
+                  child: _buildStatBox(
+                      'Leverage', isConnected ? '1:$leverage' : 'N/A'),
                 ),
               ],
             ),
@@ -164,11 +290,12 @@ class PortfolioPage extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: _buildStatBox('Winning', '127'),
+                  child: _buildStatBox('Server', isConnected ? server : 'N/A'),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildStatBox('Losing', '18'),
+                  child:
+                      _buildStatBox('Currency', isConnected ? currency : 'N/A'),
                 ),
               ],
             ),
@@ -176,11 +303,11 @@ class PortfolioPage extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: _buildStatBox('Avg Win', '\$255.51'),
+                  child: _buildStatBox('Name', isConnected ? name : 'N/A'),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildStatBox('Avg Loss', '\$388.89'),
+                  child: _buildStatBox('Broker', isConnected ? company : 'N/A'),
                 ),
               ],
             ),
@@ -191,6 +318,18 @@ class PortfolioPage extends StatelessWidget {
   }
 
   Widget _buildRiskMetrics() {
+    final margin = _accountInfo?['margin']?.toDouble() ?? 0.0;
+    final marginLevel = _accountInfo?['margin_level']?.toDouble() ?? 0.0;
+    final equity = _accountInfo?['equity']?.toDouble() ?? 0.0;
+    final balance = _accountInfo?['balance']?.toDouble() ?? 0.0;
+    final isConnected = _accountInfo != null;
+
+    // Calculate exposure (margin used as percentage of equity)
+    final exposure = equity > 0 ? (margin / equity) * 100 : 0.0;
+
+    // Calculate drawdown (difference between balance and equity as percentage)
+    final drawdown = balance > 0 ? ((balance - equity) / balance) * 100 : 0.0;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -205,13 +344,29 @@ class PortfolioPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            _buildStatRow('Max Drawdown', '8.5%', AppTheme.warningColor),
+            _buildStatRow(
+              'Margin Used',
+              isConnected ? '\$${margin.toStringAsFixed(2)}' : 'N/A',
+              margin > 0 ? AppTheme.warningColor : AppTheme.successColor,
+            ),
             const SizedBox(height: 12),
-            _buildStatRow('Sharpe Ratio', '2.34', AppTheme.successColor),
+            _buildStatRow(
+              'Margin Level',
+              isConnected ? '${marginLevel.toStringAsFixed(0)}%' : 'N/A',
+              marginLevel > 100 ? AppTheme.successColor : AppTheme.errorColor,
+            ),
             const SizedBox(height: 12),
-            _buildStatRow('Current Exposure', '12.3%', AppTheme.infoColor),
+            _buildStatRow(
+              'Current Exposure',
+              isConnected ? '${exposure.toStringAsFixed(2)}%' : 'N/A',
+              exposure < 50 ? AppTheme.successColor : AppTheme.warningColor,
+            ),
             const SizedBox(height: 12),
-            _buildStatRow('Margin Level', '285%', AppTheme.successColor),
+            _buildStatRow(
+              'Current Drawdown',
+              isConnected ? '${drawdown.abs().toStringAsFixed(2)}%' : 'N/A',
+              drawdown < 5 ? AppTheme.successColor : AppTheme.warningColor,
+            ),
           ],
         ),
       ),
