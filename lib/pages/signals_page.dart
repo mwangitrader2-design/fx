@@ -57,6 +57,7 @@ class _SignalsPageState extends State<SignalsPage> {
 
       for (final symbol in symbols) {
         try {
+          print('🔍 Analyzing $symbol...');
           final signal = await _signalGenerator.generateSignalFromMT5(
             symbol: symbol,
             primaryTimeframe: TimeframeType.H1,
@@ -69,13 +70,21 @@ class _SignalsPageState extends State<SignalsPage> {
           );
 
           if (signal != null) {
+            print(
+                '✅ Signal generated for $symbol: ${signal.type} (${(signal.confidenceScore * 100).toStringAsFixed(1)}%)');
             generatedSignals.add(signal);
+          } else {
+            print(
+                '⚠️ No signal for $symbol (confidence too low or HOLD recommendation)');
           }
         } catch (e) {
-          print('Error generating signal for $symbol: $e');
+          print('❌ Error generating signal for $symbol: $e');
           // Continue with other symbols
         }
       }
+
+      print(
+          '\n📊 Signal generation complete: ${generatedSignals.length} signals found\n');
 
       setState(() {
         _signals = generatedSignals;
@@ -83,7 +92,7 @@ class _SignalsPageState extends State<SignalsPage> {
         _isInitialLoad = false;
         if (generatedSignals.isEmpty) {
           _errorMessage =
-              'No high-confidence signals at the moment. Pull to refresh.';
+              'No signals found. Market conditions may not be favorable right now.\nPull to refresh to try again.';
         }
       });
     } catch (e) {
