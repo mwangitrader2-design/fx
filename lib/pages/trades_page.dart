@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/mt5_service.dart';
 
 class TradesPage extends StatefulWidget {
   const TradesPage({super.key});
@@ -11,6 +12,9 @@ class TradesPage extends StatefulWidget {
 class _TradesPageState extends State<TradesPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final Set<String> _expandedTrades = {};
+  final Set<String> _closingTrades = {};
+  final MT5Service _mt5Service = MT5Service();
 
   @override
   void initState() {
@@ -57,6 +61,7 @@ class _TradesPageState extends State<TradesPage>
         padding: const EdgeInsets.all(16),
         children: [
           _buildActiveTradeCard(
+            ticket: '12345678',
             symbol: 'EURUSD',
             type: 'BUY',
             entry: 1.09250,
@@ -69,6 +74,7 @@ class _TradesPageState extends State<TradesPage>
             openedAt: DateTime.now().subtract(const Duration(hours: 2)),
           ),
           _buildActiveTradeCard(
+            ticket: '12345679',
             symbol: 'GBPUSD',
             type: 'SELL',
             entry: 1.26720,
@@ -113,6 +119,7 @@ class _TradesPageState extends State<TradesPage>
   }
 
   Widget _buildActiveTradeCard({
+    required String ticket,
     required String symbol,
     required String type,
     required double entry,
@@ -127,131 +134,301 @@ class _TradesPageState extends State<TradesPage>
     final isBuy = type == 'BUY';
     final isProfit = profit >= 0;
     final signalColor = isBuy ? AppTheme.successColor : AppTheme.errorColor;
+    final tradeId = '$symbol-$type-${openedAt.millisecondsSinceEpoch}';
+    final isExpanded = _expandedTrades.contains(tradeId);
+    final pips = ((current - entry) * (isBuy ? 1 : -1) * 10000).abs();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: signalColor.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        type,
-                        style: TextStyle(
-                          color: signalColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            if (isExpanded) {
+              _expandedTrades.remove(tradeId);
+            } else {
+              _expandedTrades.add(tradeId);
+            }
+          });
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Always visible: Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: signalColor.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          type,
+                          style: TextStyle(
+                            color: signalColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 10),
+                      Text(
+                        symbol,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${isProfit ? '+' : ''}\$${profit.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: isProfit
+                                  ? AppTheme.successColor
+                                  : AppTheme.errorColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          Text(
+                            '${pips.toStringAsFixed(1)} pips',
+                            style: TextStyle(
+                              color: isProfit
+                                  ? AppTheme.successColor
+                                  : AppTheme.errorColor,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        isExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: AppTheme.textSecondaryColor,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Always visible: Basic info
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildCompactInfo(
+                      'Entry',
+                      entry.toStringAsFixed(5),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      symbol,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                  ),
+                  Expanded(
+                    child: _buildCompactInfo(
+                      'Current',
+                      current.toStringAsFixed(5),
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildCompactInfo(
+                      'Lot',
+                      lotSize.toString(),
+                    ),
+                  ),
+                ],
+              ),
+
+              // Expandable section
+              AnimatedCrossFade(
+                firstChild: const SizedBox.shrink(),
+                secondChild: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    const Divider(height: 1),
+                    const SizedBox(height: 16),
+
+                    // Detailed info
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildDetailedInfo(
+                            'Stop Loss',
+                            stopLoss.toStringAsFixed(5),
+                            Icons.trending_down,
+                            AppTheme.errorColor,
+                          ),
+                        ),
+                        Expanded(
+                          child: _buildDetailedInfo(
+                            'Take Profit',
+                            takeProfit.toStringAsFixed(5),
+                            Icons.trending_up,
+                            AppTheme.successColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Progress bar
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Progress to Target',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textMutedColor,
+                              ),
+                            ),
+                            Text(
+                              '${(_calculateProgress(entry, current, stopLoss, takeProfit, isBuy) * 100).toStringAsFixed(0)}%',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: isProfit
+                                    ? AppTheme.successColor
+                                    : AppTheme.errorColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: _calculateProgress(
+                                entry, current, stopLoss, takeProfit, isBuy),
+                            backgroundColor: Colors.grey[800],
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              isProfit
+                                  ? AppTheme.successColor
+                                  : AppTheme.errorColor,
+                            ),
+                            minHeight: 8,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Time and profit details
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceColor,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Opened',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppTheme.textMutedColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${_formatDuration(DateTime.now().difference(openedAt))} ago',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Profit %',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppTheme.textMutedColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${isProfit ? '+' : ''}${profitPercent.toStringAsFixed(2)}%',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: isProfit
+                                        ? AppTheme.successColor
+                                        : AppTheme.errorColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Close trade button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _closingTrades.contains(ticket)
+                            ? null
+                            : () => _showCloseTradeDialog(
+                                ticket, symbol, type, profit),
+                        icon: _closingTrades.contains(ticket)
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
+                              )
+                            : const Icon(Icons.close, size: 18),
+                        label: Text(_closingTrades.contains(ticket)
+                            ? 'Closing...'
+                            : 'Close Trade'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.errorColor,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color:
-                        (isProfit ? AppTheme.successColor : AppTheme.errorColor)
-                            .withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '${isProfit ? '+' : ''}\$${profit.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      color: isProfit
-                          ? AppTheme.successColor
-                          : AppTheme.errorColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTradeInfo('Entry', entry.toStringAsFixed(5)),
-                ),
-                Expanded(
-                  child: _buildTradeInfo('Current', current.toStringAsFixed(5)),
-                ),
-                Expanded(
-                  child: _buildTradeInfo('Lot', lotSize.toString()),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child:
-                      _buildTradeInfo('Stop Loss', stopLoss.toStringAsFixed(5)),
-                ),
-                Expanded(
-                  child: _buildTradeInfo(
-                      'Take Profit', takeProfit.toStringAsFixed(5)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            LinearProgressIndicator(
-              value: _calculateProgress(
-                  entry, current, stopLoss, takeProfit, isBuy),
-              backgroundColor: Colors.grey[800],
-              valueColor: AlwaysStoppedAnimation<Color>(
-                isProfit ? AppTheme.successColor : AppTheme.errorColor,
+                crossFadeState: isExpanded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                duration: const Duration(milliseconds: 300),
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Opened ${_formatDuration(DateTime.now().difference(openedAt))} ago',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.textMutedColor,
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.errorColor,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                  ),
-                  child: const Text('Close Trade'),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -270,109 +447,228 @@ class _TradesPageState extends State<TradesPage>
     final isBuy = type == 'BUY';
     final isProfit = profit >= 0;
     final signalColor = isBuy ? AppTheme.successColor : AppTheme.errorColor;
+    final tradeId = '$symbol-$type-${closedAt.millisecondsSinceEpoch}';
+    final isExpanded = _expandedTrades.contains(tradeId);
+    final pips = ((exit - entry) * (isBuy ? 1 : -1) * 10000).abs();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: signalColor.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        type,
-                        style: TextStyle(
-                          color: signalColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            if (isExpanded) {
+              _expandedTrades.remove(tradeId);
+            } else {
+              _expandedTrades.add(tradeId);
+            }
+          });
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Always visible: Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: signalColor.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          type,
+                          style: TextStyle(
+                            color: signalColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      symbol,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(width: 10),
+                      Text(
+                        symbol,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '${isProfit ? '+' : ''}\$${profit.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        color: isProfit
-                            ? AppTheme.successColor
-                            : AppTheme.errorColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${isProfit ? '+' : ''}\$${profit.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: isProfit
+                                  ? AppTheme.successColor
+                                  : AppTheme.errorColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          Text(
+                            '${isProfit ? '+' : ''}${profitPercent.toStringAsFixed(2)}%',
+                            style: TextStyle(
+                              color: isProfit
+                                  ? AppTheme.successColor
+                                  : AppTheme.errorColor,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    Text(
-                      '${isProfit ? '+' : ''}${profitPercent.toStringAsFixed(2)}%',
-                      style: TextStyle(
-                        color: isProfit
-                            ? AppTheme.successColor
-                            : AppTheme.errorColor,
-                        fontSize: 12,
+                      const SizedBox(width: 8),
+                      Icon(
+                        isExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: AppTheme.textSecondaryColor,
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTradeInfo('Entry', entry.toStringAsFixed(5)),
-                ),
-                Expanded(
-                  child: _buildTradeInfo('Exit', exit.toStringAsFixed(5)),
-                ),
-                Expanded(
-                  child: _buildTradeInfo('Duration', _formatDuration(duration)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Closed ${_formatDateTime(closedAt)}',
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppTheme.textMutedColor,
+                    ],
+                  ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+
+              // Always visible: Basic info
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildCompactInfo(
+                      'Entry',
+                      entry.toStringAsFixed(5),
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildCompactInfo(
+                      'Exit',
+                      exit.toStringAsFixed(5),
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildCompactInfo(
+                      'Pips',
+                      pips.toStringAsFixed(1),
+                    ),
+                  ),
+                ],
+              ),
+
+              // Expandable section
+              AnimatedCrossFade(
+                firstChild: const SizedBox.shrink(),
+                secondChild: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    const Divider(height: 1),
+                    const SizedBox(height: 16),
+
+                    // Detailed info
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceColor,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Trade Duration',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.textMutedColor,
+                                ),
+                              ),
+                              Text(
+                                _formatDuration(duration),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Closed',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.textMutedColor,
+                                ),
+                              ),
+                              Text(
+                                _formatDateTime(closedAt),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Price Movement',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.textMutedColor,
+                                ),
+                              ),
+                              Text(
+                                '${((exit - entry) * (isBuy ? 1 : -1) * 10000).toStringAsFixed(1)} pips',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: isProfit
+                                      ? AppTheme.successColor
+                                      : AppTheme.errorColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                crossFadeState: isExpanded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                duration: const Duration(milliseconds: 300),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildTradeInfo(String label, String value) {
+  Widget _buildCompactInfo(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
           style: const TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             color: AppTheme.textMutedColor,
           ),
         ),
@@ -380,9 +676,43 @@ class _TradesPageState extends State<TradesPage>
         Text(
           value,
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: FontWeight.w600,
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetailedInfo(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 6),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppTheme.textMutedColor,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -426,6 +756,241 @@ class _TradesPageState extends State<TradesPage>
       return 'Yesterday';
     } else {
       return '${difference.inDays} days ago';
+    }
+  }
+
+  Future<void> _showCloseTradeDialog(
+    String ticket,
+    String symbol,
+    String type,
+    double currentProfit,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Close Trade'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Are you sure you want to close this trade?',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Symbol:',
+                        style: TextStyle(
+                          color: AppTheme.textMutedColor,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        '$symbol ($type)',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Current P/L:',
+                        style: TextStyle(
+                          color: AppTheme.textMutedColor,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        '${currentProfit >= 0 ? '+' : ''}\$${currentProfit.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: currentProfit >= 0
+                              ? AppTheme.successColor
+                              : AppTheme.errorColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Ticket:',
+                        style: TextStyle(
+                          color: AppTheme.textMutedColor,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        '#$ticket',
+                        style: const TextStyle(
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+            ),
+            child: const Text('Close Trade'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _closeTrade(ticket, symbol);
+    }
+  }
+
+  Future<void> _closeTrade(String ticket, String symbol) async {
+    setState(() {
+      _closingTrades.add(ticket);
+    });
+
+    try {
+      final result = await _mt5Service.closePosition(ticket);
+
+      if (!mounted) return;
+
+      if (result['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Trade Closed',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '$symbol position #$ticket closed successfully',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppTheme.successColor,
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+
+        // TODO: Refresh trades list here
+        setState(() {});
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Failed to Close Trade',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        result['message'] ?? 'Unknown error occurred',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppTheme.errorColor,
+            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: () => _closeTrade(ticket, symbol),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Error',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'Connection error: $e',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: AppTheme.errorColor,
+          duration: const Duration(seconds: 5),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _closingTrades.remove(ticket);
+        });
+      }
     }
   }
 }
