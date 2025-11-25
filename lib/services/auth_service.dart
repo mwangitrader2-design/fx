@@ -148,7 +148,7 @@ class AuthService {
       try {
         // Delete user document from Firestore
         await _firestore.collection('users').doc(user.uid).delete();
-        
+
         // Delete user authentication
         await user.delete();
       } catch (e) {
