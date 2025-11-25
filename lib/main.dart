@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'theme/app_theme.dart';
+import 'pages/splash_screen.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/markets_page.dart';
 import 'pages/signals_page.dart';
@@ -29,7 +30,7 @@ class KimutaiFXApp extends StatelessWidget {
       title: 'Kimutai FX',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const MainNavigationScreen(),
+      home: const SplashScreen(), // Start with splash screen
     );
   }
 }
