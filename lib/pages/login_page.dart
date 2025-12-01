@@ -110,10 +110,24 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
-                    child: const Icon(
-                      Icons.currency_exchange,
-                      size: 60,
-                      color: Colors.white,
+                    child: RepaintBoundary(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          width: 70,
+                          height: 70,
+                          fit: BoxFit.contain,
+                          cacheWidth: 210,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              Icons.currency_exchange,
+                              size: 60,
+                              color: Colors.white,
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 30),

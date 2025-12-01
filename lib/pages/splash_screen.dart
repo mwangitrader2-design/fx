@@ -93,11 +93,25 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ],
                   ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.currency_exchange,
-                      size: 80,
-                      color: Colors.white,
+                  child: Center(
+                    child: RepaintBoundary(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.contain,
+                          cacheWidth: 300,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              Icons.currency_exchange,
+                              size: 80,
+                              color: Colors.white,
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   ),
                 ),

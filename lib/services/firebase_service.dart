@@ -40,7 +40,7 @@ class FirebaseService {
       await _analytics.logEvent(
         name: eventName,
         parameters:
-            parameters?.map((key, value) => MapEntry(key, value as Object)),
+            parameters.map((key, value) => MapEntry(key, value as Object)),
       );
 
       // Also store in Firestore for historical analysis

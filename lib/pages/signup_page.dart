@@ -115,10 +115,24 @@ class _SignupPageState extends State<SignupPage> {
                         ),
                       ],
                     ),
-                    child: const Icon(
-                      Icons.currency_exchange,
-                      size: 50,
-                      color: Colors.white,
+                    child: RepaintBoundary(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.contain,
+                          cacheWidth: 180,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              Icons.currency_exchange,
+                              size: 50,
+                              color: Colors.white,
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),

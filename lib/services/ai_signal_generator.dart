@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:uuid/uuid.dart';
 import '../models/models.dart';
 import 'ai_market_analyzer.dart';

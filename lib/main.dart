@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'theme/app_theme.dart';
@@ -12,6 +13,16 @@ import 'pages/settings_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Performance optimizations
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // Optimize image cache
+  PaintingBinding.instance.imageCache.maximumSize = 100;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 50 * 1024 * 1024; // 50 MB
 
   // Initialize Firebase
   await Firebase.initializeApp(
@@ -59,6 +70,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
+        sizing: StackFit.passthrough,
         children: _pages,
       ),
       bottomNavigationBar: NavigationBar(
