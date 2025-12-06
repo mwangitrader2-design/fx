@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
-import 'dashboard_page.dart';
+import 'main_navigation_screen.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -56,10 +56,10 @@ class _SignupPageState extends State<SignupPage> {
           ),
         );
 
-        // Navigate to dashboard
+        // Navigate to main navigation shell so bottom nav is visible
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) => const DashboardPage(),
+            builder: (context) => const MainNavigationScreen(),
           ),
           (route) => false,
         );

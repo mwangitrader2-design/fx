@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import 'signup_page.dart';
-import 'dashboard_page.dart';
+import 'main_navigation_screen.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -43,10 +43,10 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (user != null && mounted) {
-        // Navigate to dashboard
+        // Navigate to main navigation shell so bottom nav is visible
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => const DashboardPage(),
+            builder: (context) => const MainNavigationScreen(),
           ),
         );
       }

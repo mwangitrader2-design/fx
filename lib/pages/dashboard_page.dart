@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/stat_card.dart';
@@ -16,6 +17,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage>
     with AutomaticKeepAliveClientMixin {
   final _mt5Service = MT5Service();
+  final User? _currentUser = FirebaseAuth.instance.currentUser;
   Map<String, dynamic>? _accountInfo;
   bool _isLoading = true;
 
@@ -66,6 +68,8 @@ class _DashboardPageState extends State<DashboardPage>
           padding: const EdgeInsets.all(16),
           cacheExtent: 1000,
           children: [
+            _WelcomeHeader(displayName: _currentUser?.displayName),
+            const SizedBox(height: 16),
             _PortfolioOverview(
               accountInfo: _accountInfo,
               isLoading: _isLoading,
@@ -82,6 +86,40 @@ class _DashboardPageState extends State<DashboardPage>
           ],
         ),
       ),
+    );
+  }
+}
+
+class _WelcomeHeader extends StatelessWidget {
+  final String? displayName;
+
+  const _WelcomeHeader({this.displayName});
+
+  @override
+  Widget build(BuildContext context) {
+    final greetingName = displayName?.trim().isNotEmpty == true
+        ? displayName!
+        : 'Trader';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Welcome back, $greetingName',
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Here is today\'s market overview.',
+          style: TextStyle(
+            fontSize: 14,
+            color: AppTheme.textSecondaryColor,
+          ),
+        ),
+      ],
     );
   }
 }
