@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/mt5_service.dart';
+import '../state/account_state.dart';
 
 class PortfolioPage extends StatefulWidget {
   const PortfolioPage({super.key});
@@ -11,13 +12,33 @@ class PortfolioPage extends StatefulWidget {
 
 class _PortfolioPageState extends State<PortfolioPage> {
   final _mt5Service = MT5Service();
+  final AccountState _accountState = AccountState.instance;
   Map<String, dynamic>? _accountInfo;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    final cachedInfo = _accountState.accountInfo;
+    if (cachedInfo != null) {
+      _accountInfo = cachedInfo;
+      _isLoading = false;
+    }
+    _accountState.addListener(_handleAccountUpdate);
     _loadAccountInfo();
+  }
+
+  @override
+  void dispose() {
+    _accountState.removeListener(_handleAccountUpdate);
+    super.dispose();
+  }
+
+  void _handleAccountUpdate() {
+    if (!mounted) return;
+    setState(() {
+      _accountInfo = _accountState.accountInfo;
+    });
   }
 
   Future<void> _loadAccountInfo() async {
@@ -30,6 +51,10 @@ class _PortfolioPageState extends State<PortfolioPage> {
           _accountInfo = result['data'];
           _isLoading = false;
         });
+        final data = result['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          _accountState.updateFromAccountInfo(Map<String, dynamic>.from(data));
+        }
       } else {
         setState(() => _isLoading = false);
       }

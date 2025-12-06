@@ -6,6 +6,7 @@ import '../widgets/portfolio_chart.dart';
 import '../widgets/active_trades_card.dart';
 import '../widgets/recent_signals_list.dart';
 import '../services/mt5_service.dart';
+import '../state/account_state.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -17,6 +18,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage>
     with AutomaticKeepAliveClientMixin {
   final _mt5Service = MT5Service();
+  final AccountState _accountState = AccountState.instance;
   final User? _currentUser = FirebaseAuth.instance.currentUser;
   Map<String, dynamic>? _accountInfo;
   bool _isLoading = true;
@@ -27,7 +29,26 @@ class _DashboardPageState extends State<DashboardPage>
   @override
   void initState() {
     super.initState();
+    final cachedInfo = _accountState.accountInfo;
+    if (cachedInfo != null) {
+      _accountInfo = cachedInfo;
+      _isLoading = false;
+    }
+    _accountState.addListener(_handleAccountStateChange);
     _loadAccountInfo();
+  }
+
+  @override
+  void dispose() {
+    _accountState.removeListener(_handleAccountStateChange);
+    super.dispose();
+  }
+
+  void _handleAccountStateChange() {
+    if (!mounted) return;
+    setState(() {
+      _accountInfo = _accountState.accountInfo;
+    });
   }
 
   Future<void> _loadAccountInfo() async {
@@ -40,6 +61,10 @@ class _DashboardPageState extends State<DashboardPage>
           _accountInfo = result['data'];
           _isLoading = false;
         });
+        final data = result['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          _accountState.updateFromAccountInfo(Map<String, dynamic>.from(data));
+        }
       } else {
         setState(() => _isLoading = false);
       }

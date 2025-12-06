@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/mt5_service.dart';
+import '../state/account_state.dart';
 
 class BrokerConnectionPage extends StatefulWidget {
   const BrokerConnectionPage({super.key});
@@ -570,6 +571,10 @@ class _BrokerConnectionPageState extends State<BrokerConnectionPage> {
         };
       });
 
+      if (_accountInfo != null) {
+        AccountState.instance.updateFromAccountInfo(_accountInfo!);
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Successfully logged in to MT5'),
@@ -639,6 +644,8 @@ class _BrokerConnectionPageState extends State<BrokerConnectionPage> {
       _accountInfo = null;
       _isLoading = false;
     });
+
+    AccountState.instance.clear();
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
