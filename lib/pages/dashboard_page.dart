@@ -97,9 +97,8 @@ class _WelcomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final greetingName = displayName?.trim().isNotEmpty == true
-        ? displayName!
-        : 'Trader';
+    final greetingName =
+        displayName?.trim().isNotEmpty == true ? displayName! : 'Trader';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
