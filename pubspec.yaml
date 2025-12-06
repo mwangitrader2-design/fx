@@ -46,6 +46,7 @@ dependencies:
   firebase_analytics: ^11.3.3
   cloud_firestore: ^5.4.4
   firebase_storage: ^12.3.4
+  firebase_app_check: ^0.3.0+4
   
   # ML and Data Analysis
   tflite_flutter: ^0.10.4
