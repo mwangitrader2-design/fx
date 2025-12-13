@@ -101,13 +101,6 @@ class _DashboardPageState extends State<DashboardPage>
             ),
             const SizedBox(height: 24),
             _StatsGrid(accountInfo: _accountInfo),
-            const SizedBox(height: 24),
-            const _PortfolioChartSection(),
-            const SizedBox(height: 24),
-            const _ActiveTradesSection(),
-            const SizedBox(height: 24),
-            const _RecentSignalsSection(),
-            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -324,122 +317,6 @@ class _StatsGrid extends StatelessWidget {
                 marginLevel > 100 ? AppTheme.successColor : AppTheme.errorColor,
             trend: margin > 0 ? 'Used: \$${margin.toStringAsFixed(2)}' : '',
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PortfolioChartSection extends StatelessWidget {
-  const _PortfolioChartSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Portfolio Growth',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  DropdownButton<String>(
-                    value: '1W',
-                    items: const [
-                      DropdownMenuItem(value: '24H', child: Text('24H')),
-                      DropdownMenuItem(value: '1W', child: Text('1W')),
-                      DropdownMenuItem(value: '1M', child: Text('1M')),
-                      DropdownMenuItem(value: '3M', child: Text('3M')),
-                      DropdownMenuItem(value: '6M', child: Text('6M')),
-                      DropdownMenuItem(value: '1Y', child: Text('1Y')),
-                    ],
-                    onChanged: (value) {},
-                    underline: const SizedBox(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const SizedBox(
-                height: 200,
-                child: PortfolioChart(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ActiveTradesSection extends StatelessWidget {
-  const _ActiveTradesSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Active Trades',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              TextButton(
-                onPressed: () {},
-                child: const Text('View All'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const ActiveTradesCard(),
-        ],
-      ),
-    );
-  }
-}
-
-class _RecentSignalsSection extends StatelessWidget {
-  const _RecentSignalsSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Recent Signals',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              TextButton(
-                onPressed: () {},
-                child: const Text('View All'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const RecentSignalsList(),
         ],
       ),
     );
