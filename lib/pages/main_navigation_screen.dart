@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'dashboard_page.dart';
-import 'markets_page.dart';
 import 'signals_page.dart';
 import 'trades_page.dart';
 import 'portfolio_page.dart';
@@ -19,7 +18,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   static const List<Widget> _pages = [
     DashboardPage(),
-    MarketsPage(),
     SignalsPage(),
     TradesPage(),
     PortfolioPage(),
@@ -48,11 +46,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             icon: Icon(Icons.dashboard_outlined),
             selectedIcon: Icon(Icons.dashboard),
             label: 'Dashboard',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.candlestick_chart_outlined),
-            selectedIcon: Icon(Icons.candlestick_chart),
-            label: 'Markets',
           ),
           NavigationDestination(
             icon: Icon(Icons.flash_on_outlined),
