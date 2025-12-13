@@ -80,7 +80,7 @@ class _SplashScreenState extends State<SplashScreen>
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        AppTheme.primaryColor,
+                        const Color.fromRGBO(40, 29, 255, 1),
                         AppTheme.primaryColor.withOpacity(0.7),
                       ],
                     ),

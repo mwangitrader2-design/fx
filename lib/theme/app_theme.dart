@@ -2,38 +2,38 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   // Colors
-  static const Color primaryColor = Color(0xFF6C63FF);
-  static const Color secondaryColor = Color(0xFF00D4AA);
-  static const Color accentColor = Color(0xFFFF6584);
-  static const Color backgroundColor = Color(0xFF0F0F23);
-  static const Color surfaceColor = Color(0xFF1A1A2E);
-  static const Color cardColor = Color(0xFF16213E);
+  static const Color primaryColor = Color(0xFF00B2A9);
+  static const Color secondaryColor = Color(0xFF00736C);
+  static const Color accentColor = Color(0xFF5AE5D8);
+  static const Color backgroundColor = Color(0xFF000000);
+  static const Color surfaceColor = Color(0xFF101010);
+  static const Color cardColor = Color(0xFF161616);
 
   // Text Colors
   static const Color textPrimaryColor = Color(0xFFFFFFFF);
-  static const Color textSecondaryColor = Color(0xFFB0B3C1);
-  static const Color textMutedColor = Color(0xFF6B7280);
+  static const Color textSecondaryColor = Color(0xFFB2FFF7);
+  static const Color textMutedColor = Color(0xFF66A09C);
 
   // Status Colors
-  static const Color successColor = Color(0xFF10B981);
-  static const Color errorColor = Color(0xFFEF4444);
-  static const Color warningColor = Color(0xFFF59E0B);
-  static const Color infoColor = Color(0xFF3B82F6);
+  static const Color successColor = Color(0xFF00D4C7);
+  static const Color errorColor = Color(0xFF004D47);
+  static const Color warningColor = Color(0xFF00958C);
+  static const Color infoColor = Color(0xFF5AE5D8);
 
   // Gradient Colors
   static const List<Color> primaryGradient = [
-    Color(0xFF6C63FF),
-    Color(0xFF5A52D5),
+    Color(0xFF00B2A9),
+    Color(0xFF007F79),
   ];
 
   static const List<Color> successGradient = [
-    Color(0xFF10B981),
-    Color(0xFF059669),
+    Color(0xFF00D4C7),
+    Color(0xFF00958C),
   ];
 
   static const List<Color> dangerGradient = [
-    Color(0xFFEF4444),
-    Color(0xFFDC2626),
+    Color(0xFF00635D),
+    Color(0xFF003C38),
   ];
 
   static ThemeData get darkTheme {
