@@ -1,4 +1,4 @@
-MetaTrader5==5.0.45
+# Flask Server
 Flask==3.0.0
 flask-cors==4.0.0
 
@@ -29,3 +29,6 @@ prophet==1.1.5
 # Utilities
 python-dotenv==1.0.0
 schedule==1.2.0
+
+# Note: MetaTrader5==5.0.45 only works on Windows/macOS
+# For Linux/Codespaces, use the demo server (mt5_bridge_server_demo.py)
